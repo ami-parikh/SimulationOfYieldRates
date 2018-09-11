@@ -1,0 +1,920 @@
+---
+title: "Statistical Analysis - Final Project"
+author: "Ami Parikh"
+date: "4 June 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Step 1
+##1a. Reading the data
+```{r}
+datapath <- "C:/University of Chicago/Statistical Analysis/Lecture 4"
+AssignmentData <- read.csv(file=paste(datapath, "RegressionAssignmentData2014.csv.",sep='/'),row.names=1, header=TRUE, sep=",")
+head(AssignmentData)
+```
+##1b. Plotting the input variables
+```{r}
+matplot(AssignmentData[,-c(8,9,10)],type='l')
+```
+
+
+The input variables all seem to be fairly highly correlated - most of the lines seem to have similar shapes where they all seem to move up or down together and follow similar trajectories.They are however slightly shifted from each other on different horizontal levels.
+
+
+##1c. Plotting the input along with the output
+```{r}
+matplot(AssignmentData[,-c(9,10)],type='l')
+```
+
+While the output does not appear to be having the same slope as the inputs, it does seem to follow a similar pattern to the inputs - rising when there is a rise in the inputs and falling when there is a fall in the inputs.There is however a greater negative slope for the output compared to the inputs.
+
+
+#Step 2 - Regression of Response vs. each predictor
+
+##2a. Estimating a simple regression model with each of the input variables and the output variable given in AssignmentData
+
+```{r}
+Linear.Model.Input1 <- lm(Output1~USGG3M, data= AssignmentData)
+c(Total.Variance=var(AssignmentData[,8]),Unexplained.Variance1=summary(Linear.Model.Input1)$sigma^2)
+matplot(AssignmentData[,8],type="l",xaxt="n")
+lines(Linear.Model.Input1$fitted.values,col="red")
+summary(Linear.Model.Input1)
+plot(AssignmentData[,1],Linear.Model.Input1$residuals)
+
+```
+
+**Analysis of the summary of the first linear model:**  
+
+Analysing the first model, the variable USGG3M appears to be a good predictor for the output. Not only does the graph of the fitted values follow the graph of the actual output, but the valye of R-squared is also very high ,ie. having a value of 0.9628.
+The slope is 2.50756 which means that for every unit increase in the 3 month rate would lead to an increase of approximately 2.5% for the Output.
+The t-value for the predictor has a p-value that is effectively 0, meaning it is a significant predictor for the response variable.
+Looking at the plot of the residuals against the inputs, the residuals are clearly not normally distributed. 
+
+
+```{r}
+Linear.Model.Input2 <- lm(Output1~USGG6M, data= AssignmentData)
+c(Total.Variance=var(AssignmentData[,8]),Unexplained.Variance2=summary(Linear.Model.Input2)$sigma^2)
+matplot(AssignmentData[,8],type="l",xaxt="n")
+lines(Linear.Model.Input2$fitted.values,col="red")
+summary(Linear.Model.Input2)
+plot(AssignmentData[,2],Linear.Model.Input2$residuals)
+
+
+
+Linear.Model.Input3 <- lm(Output1~USGG2YR, data= AssignmentData)
+c(Total.Variance=var(AssignmentData[,8]),Unexplained.Variance3=summary(Linear.Model.Input3)$sigma^2)
+matplot(AssignmentData[,8],type="l",xaxt="n")
+lines(Linear.Model.Input3$fitted.values,col="red")
+summary(Linear.Model.Input3)
+plot(AssignmentData[,3],Linear.Model.Input3$residuals)
+
+
+Linear.Model.Input4 <- lm(Output1~USGG3YR, data= AssignmentData)
+c(Total.Variance=var(AssignmentData[,8]),Unexplained.Variance4=summary(Linear.Model.Input4)$sigma^2)
+matplot(AssignmentData[,8],type="l",xaxt="n")
+lines(Linear.Model.Input4$fitted.values,col="red")
+summary(Linear.Model.Input4)
+plot(AssignmentData[,4],Linear.Model.Input4$residuals)
+
+
+
+Linear.Model.Input5 <- lm(Output1~USGG5YR, data= AssignmentData)
+c(Total.Variance=var(AssignmentData[,8]),Unexplained.Variance5=summary(Linear.Model.Input5)$sigma^2)
+matplot(AssignmentData[,8],type="l",xaxt="n")
+lines(Linear.Model.Input5$fitted.values,col="red")
+summary(Linear.Model.Input5)
+plot(AssignmentData[,5],Linear.Model.Input5$residuals)
+
+
+Linear.Model.Input6 <- lm(Output1~USGG10YR, data= AssignmentData)
+c(Total.Variance=var(AssignmentData[,8]),Unexplained.Variance6=summary(Linear.Model.Input6)$sigma^2)
+matplot(AssignmentData[,8],type="l",xaxt="n")
+lines(Linear.Model.Input6$fitted.values,col="red")
+summary(Linear.Model.Input6)
+plot(AssignmentData[,6],Linear.Model.Input6$residuals)
+
+
+Linear.Model.Input7 <- lm(Output1~USGG30YR, data= AssignmentData)
+c(Total.Variance=var(AssignmentData[,8]),Unexplained.Variance7=summary(Linear.Model.Input7)$sigma^2)
+matplot(AssignmentData[,8],type="l",xaxt="n")
+lines(Linear.Model.Input7$fitted.values,col="red")
+summary(Linear.Model.Input7)
+plot(AssignmentData[,7],Linear.Model.Input7$residuals)
+
+
+```
+
+All the models have fairly similar characteristics, so grouping them together (using the apply function), and desscribing their characteristics together- 
+
+**Combining all the models using one line of code and the apply function:**
+```{r}
+Linear.Model.Comparison <- data.frame(t(apply(AssignmentData[,1:7],2, function (x) lm(AssignmentData$Output1~x)$coefficients)),
+                                  t(t(apply(AssignmentData[,1:7],2, function (x) summary(lm(AssignmentData$Output1~x))$r.squared))),var(AssignmentData[,8]),
+                                  t(t(apply(AssignmentData[,1:7],2, function (x) summary(lm(AssignmentData$Output1~x))$sigma^2*100/var(AssignmentData[,8])))))
+
+names(Linear.Model.Comparison) <- c("Intercept","Slope","rsq","total variance","unexplained var")
+
+
+Linear.Model.Comparison
+
+```
+
+**Analysis of the summaries of the linear models: ** 
+
+All of the Linear Models for the output vs each one of the predictors seems to have fairly similar results as seen above.
+All of the r-squared values are very high i.e. above 0.93 in all cases indicating that each of these inputs appears to be a great predictor for the output.
+All of the predictors also have t-values which a very low p(t) indicating that they are significant predictors.
+The plots of the fitted values for each closely matches the actual ouput values.
+The proportion of variance of unexplained by each model however is the lowest for USGG2YR, USGG3YR and USGG5YR, indicating that these could be the best models as the model explains the major part of the variance. The goal is always to try and reduce the error or the residuals- which is what forms the unexplained variance.
+Therefore, USGG3YR, USGG2YR and USGG5YR explain the most variance (in descending order), and they also have the highest values of R-squared amongst all the predictors.
+However there could be high covariance amongst all the predictors which may make some of them appear to perform more poorly.
+
+
+**Calculating Unexplained Variance:**  
+
+We have calculated the unexplained variance for each model by squaring the sd of the residuals. This is called the unexplained variance as it is the part of the variance that is not explained by how y varies with the different predictors. As the variance of y based on the values of the different predictors can be explained by the model, the variance of the residuals is called the unexplained variance.
+This is important because smaller the proportion of unexplained variance out of the total variance, the better the job the model does in predicting the response. 
+Our goal is to reduce the unexplained variance till it just reflects the noise in the data.
+
+
+#Step 3 - Regression of each Predictor vs. Response
+
+```{r}
+Linear.Model.Output1 <- lm(USGG3M~Output1, data= AssignmentData)
+c(Total.Variance=var(AssignmentData[,1]),Unexplained.Variance1=summary(Linear.Model.Output1)$sigma^2)
+matplot(AssignmentData[,1],type="l",xaxt="n")
+lines(Linear.Model.Output1$fitted.values,col="red")
+summary(Linear.Model.Output1)
+
+Linear.Model.Output2 <- lm(USGG6M~Output1, data= AssignmentData)
+c(Total.Variance=var(AssignmentData[,2]),Unexplained.Variance2=summary(Linear.Model.Output2)$sigma^2)
+matplot(AssignmentData[,2],type="l",xaxt="n")
+lines(Linear.Model.Output2$fitted.values,col="red")
+summary(Linear.Model.Output2)
+
+
+Linear.Model.Output3 <- lm(USGG2YR~Output1, data= AssignmentData)
+c(Total.Variance=var(AssignmentData[,3]),Unexplained.Variance3=summary(Linear.Model.Output3)$sigma^2)
+matplot(AssignmentData[,3],type="l",xaxt="n")
+lines(Linear.Model.Output3$fitted.values,col="red")
+summary(Linear.Model.Output3)
+
+
+Linear.Model.Output4 <- lm(USGG3YR~Output1, data= AssignmentData)
+c(Total.Variance=var(AssignmentData[,4]),Unexplained.Variance4=summary(Linear.Model.Output4)$sigma^2)
+matplot(AssignmentData[,4],type="l",xaxt="n")
+lines(Linear.Model.Output4$fitted.values,col="red")
+summary(Linear.Model.Output4)
+
+
+Linear.Model.Output5 <- lm(USGG5YR~Output1, data= AssignmentData)
+c(Total.Variance=var(AssignmentData[,5]),Unexplained.Variance5=summary(Linear.Model.Output5)$sigma^2)
+matplot(AssignmentData[,5],type="l",xaxt="n")
+lines(Linear.Model.Output5$fitted.values,col="red")
+summary(Linear.Model.Output5)
+
+
+Linear.Model.Output6 <- lm(USGG10YR~Output1, data= AssignmentData)
+c(Total.Variance=var(AssignmentData[,6]),Unexplained.Variance6=summary(Linear.Model.Output6)$sigma^2)
+matplot(AssignmentData[,6],type="l",xaxt="n")
+lines(Linear.Model.Output6$fitted.values,col="red")
+summary(Linear.Model.Output6)
+
+
+Linear.Model.Output7 <- lm(USGG30YR~Output1, data= AssignmentData)
+c(Total.Variance=var(AssignmentData[,7]),Unexplained.Variance7=summary(Linear.Model.Output7)$sigma^2)
+matplot(AssignmentData[,7],type="l",xaxt="n")
+lines(Linear.Model.Output7$fitted.values,col="red")
+summary(Linear.Model.Output7)
+
+```
+**Combining all the models using apply function:**
+```{r}
+Linear.Model.Comparison2 <- data.frame(t(apply(AssignmentData[,1:7],2, function (x) lm(x~AssignmentData$Output1)$coefficients)),
+                                      t(t(apply(AssignmentData[,1:7],2, function (x) summary(lm(x~AssignmentData$Output1))$r.squared))),var(AssignmentData[,8]),
+                                      t(t(apply(AssignmentData[,1:7],2, function (x) summary(lm(x~AssignmentData$Output1))$sigma^2*100/var(AssignmentData[,8])))))
+
+names(Linear.Model.Comparison2) <- c("Intercept","Slope","rsq","total variance","unexplained var")
+
+
+Linear.Model.Comparison2
+
+```
+**Analysis of the Model: **  
+
+The models of each input predictor vs. the output, would give different values of intercept and slope compared to the models in step 2, because we are effectively switching the axes on which we are plotting these points. 
+
+It can be understood to imply that if the axes were to remain the same as in the case of the models of Output~Input, we would now be trying to minimize the sum of horizontal distances from the regression line as compared to the sum of the vertical distances.  
+
+However, even though the models may look different, they essentially are comparing the same pairs of variables, and hence the values of t and p(t) for the new predictors are the same as the values of t and P(t) for the predictors in the original models.  
+
+Also, since the pairs of variables are the same, the values of R-squared are exactly the same as in the original model -> Correlation(x,y) =Correlation(y,x)
+
+
+#Step 4 - Logistic Regression
+
+##4a. Preparing the data for Logistic Regression
+```{r}
+AssignmentDataLogistic <- data.matrix(AssignmentData,rownames.force = "automatic")
+
+```
+Preparing the easing-tightening data:
+Make the easing column equal to 0 during the easing periods and NA otherwise.
+Make the tightening column equal to 1 during the tightening periods and NA otherwise.
+
+```{r}
+EasingPeriods <- AssignmentData[,9]
+EasingPeriods[AssignmentData[,9]==1]<-0
+TighteningPeriods <- AssignmentData[,10]
+
+cbind(EasingPeriods,TighteningPeriods)[c(550:560,900:910,970:980),]
+
+```
+
+Removing the periods of neither easing not tightening.
+
+```{r}
+head(isAllNA <- is.na(EasingPeriods)&is.na(TighteningPeriods))
+
+AssignmentDataEasingTighteningOnly <- AssignmentDataLogistic
+AssignmentDataEasingTighteningOnly[,9]<- EasingPeriods
+head(AssignmentDataEasingTighteningOnly<- AssignmentDataEasingTighteningOnly[!isAllNA,])
+AssignmentDataEasingTighteningOnly[is.na(AssignmentDataEasingTighteningOnly[,10]),10]<-0
+
+head(AssignmentDataEasingTighteningOnly)
+
+```
+
+##4b. Plot the data and the binary output variable representing easing (0) and tightening (1) periods.
+```{r}
+matplot(AssignmentDataEasingTighteningOnly[,-c(9,10)],type="l",ylab="Data and Binary Fed Mode", ylim=c(0,25))
+lines(AssignmentDataEasingTighteningOnly[,10]*20,col="red")
+
+```
+
+##4c. Estimate logistic regression with 3M yields as predictors for easing/tightening output.
+
+```{r}
+LogisticModelTighteningEasing_3M <- glm(AssignmentDataEasingTighteningOnly[,10]~
+                                          AssignmentDataEasingTighteningOnly[,1],family=binomial(link=logit))
+summary(LogisticModelTighteningEasing_3M)
+
+```
+
+The summary shows that the predictor used is significant as the P(z) is very low. Also the Residual deviance is lower than the Null deviance(calculated for a model having only an intercept) and it has used only one extra degree of freedom.  
+
+The coefficients: The intercept is the log odds of Output1 when the predictor is 0. The increase in the log-odds of Output1 for each unit increase in the predictor is 0.18638.
+
+```{r}
+matplot(AssignmentDataEasingTighteningOnly[,-c(9,10)],type="l",ylab="Data and Fitted Values")
+lines(AssignmentDataEasingTighteningOnly[,10]*20,col="red")
+lines(LogisticModelTighteningEasing_3M$fitted.values*20,col="green")
+```
+
+
+The fitted values seem to follow the trend of Easing and Tightening in most areas of the graph except in the extreme left of the graph, where the fitted values seem to be moving in the opposite direction.The fitted values also seem to be almost exactly following the 3M rates.
+
+
+##4d. Using all inputs as predictors for logistic regression
+
+```{r}
+LogisticModelTighteningEasing_All <-glm(AssignmentDataEasingTighteningOnly[,10]~
+                                          AssignmentDataEasingTighteningOnly[,1:7],family=binomial(link=logit))
+summary(LogisticModelTighteningEasing_All)
+summary(LogisticModelTighteningEasing_All)$aic
+
+
+summary(LogisticModelTighteningEasing_All)$coefficients[,c(1,4)]
+matplot(AssignmentDataEasingTighteningOnly[,-c(9,10)],type="l",ylab="Results of Logistic Regression")
+lines(AssignmentDataEasingTighteningOnly[,10]*20,col="red")
+lines(LogisticModelTighteningEasing_All$fitted.values*20,col="green")
+```
+
+
+Each coeffient marks the increase or decrease in log-odds of the probability of tightening given unit change in that predictor, given all other predictors are constant.
+The fitted values fit the tightening and loosening curve better than with just the 3M predictor. The fitted values seem to follow the trend more accurately. The AIC for this model is also much lower than the AIC for the model with only the 3M predictor, which helps see that it is a better model.
+
+##4e. Calculating and plotting log-odds and probabilities. Comparing probabilities with fitted values.
+```{r}
+
+Logodds <- predict(LogisticModelTighteningEasing_All)
+
+plot(Logodds, type ='l')
+
+Probabilities<-1/(exp(-Logodds)+1)
+plot(LogisticModelTighteningEasing_All$fitted.values,type="l",ylab="Fitted Values & Log-Odds")
+lines(Probabilities,col="red")
+
+```
+
+
+glm outputs Probabilities as the fitted values.The Probabilities and fitted values are equal as the graphs overap each other perfectly.
+Loosening and tightening seems to be following the interest rate trends to a certain extent. When the rates go up, it appears to be analogous to tightening and when the rates go down, it appears to be analogous with loosening.
+
+#Step 5 - Compare linear regression models with different combinations of predictors
+
+```{r}
+AssignmentDataRegressionComparison<-data.matrix(AssignmentData[,-c(9,10)],rownames.force="automatic")
+```
+
+##5a. Estimating the full model
+```{r}
+lmFullModel <- lm(AssignmentDataRegressionComparison[,8]~AssignmentDataRegressionComparison[,1:7])
+summary(lmFullModel)
+```
+
+###1. Coefficients:
+```{r}
+summary(lmFullModel)$coefficients
+
+names(summary(lmFullModel))
+```
+
+###2.R2 and Adjusted R2
+```{r}
+c("R2"=summary(lmFullModel)$r.squared,"Adj R2" =summary(lmFullModel)$adj.r.squared)
+```
+
+###3. Df
+```{r}
+summary(lmFullModel)$df
+
+```
+
+**Intepret the fitted model. How good is the fit? How significant are the parameters?**   
+
+The full model is a perfectly fitting model - R2 and adjusted R2 are both 1 or 100%, hence all the variance is explained. All the parameters are significant as the p-values are all zero. The model is overfitted. 
+
+
+##5b. Estimating the Null Model  
+```{r}
+lmNullModel <- lm(AssignmentDataRegressionComparison[,8]~1)
+summary(lmNullModel)
+
+```
+
+###1. Coefficients:
+```{r}
+summary(lmNullModel)$coefficients
+
+names(summary(lmNullModel))
+```
+
+###2.R2 and Adjusted R2
+```{r}
+c("R2"=summary(lmNullModel)$r.squared,"Adj R2" =summary(lmNullModel)$adj.r.squared)
+```
+
+###3. Df
+```{r}
+summary(lmNullModel)$df
+
+```
+
+**Why summary(RegressionModelComparison.Null) does not show R2?**  
+
+The model does not show R2 because there are no predictors, and hence the SSM =0, therefore R2 =SSM/SST=0.   Also yhat=ybar, therefore yhat-ybar=0
+
+
+##5c. Compare models pairwise using anova()
+```{r}
+anova(lmFullModel,lmNullModel)
+
+```
+
+To compare the models, when you check RSS - the null model has an increased RSS (which is the unexplained component or error component)and so the null model is worse. Also Sum Sq is negative (difference between first and second- so second is performing worse).  
+
+P(F) is very small, so the null hypothesis that both models are the same is rejected.
+
+##5d. Repeating the analysis for different combinations of input variables
+###5d1. Attemping the Step function
+```{r}
+step(lmFullModel, direction="both")
+
+```
+
+Generates a warning that "attempting model selection on an essentially perfect fit is nonse"
+
+###5d2.Attemping to use add1 to select parameters
+```{r}
+dat = as.data.frame(AssignmentDataRegressionComparison)
+lmNullModel <- lm(Output1~1, data=dat)
+
+myscope<-names(dat)[-which(names(dat)=="Output1")]
+myscope
+
+add1(lmNullModel,scope=myscope)
+
+#adding USGG3YR
+lm3Yr <- lm(Output1~USGG3YR,data=dat)
+summary(lm3Yr)$r.squared
+anova(lmNullModel,lm3Yr)
+myscope <- myscope[-which(myscope=="USGG3YR")]
+add1(lm3Yr, scope=myscope)
+```
+
+```{r}
+#addding 3 months
+lm3Yr3M <- lm(Output1~USGG3YR+USGG3M, data=dat)
+summary(lm3Yr3M)$r.squared
+anova(lm3Yr3M,lm3Yr)
+
+```
+
+
+```{r}
+myscope <- myscope[-which(myscope=="USGG3M")]
+add1(lm3Yr3M, scope=myscope)
+
+#adding 10YRs
+lm3Yr3M10Yr <- lm(Output1~USGG3YR+USGG3M+USGG10YR, data=dat)
+summary(lm3Yr3M10Yr)$r.squared
+anova(lm3Yr3M10Yr,lm3Yr)
+
+```
+
+
+R.squared for the model with 3YR,3M and 10YR added as parameters is 0.9999175, which is almost a perfect model. So we could use this combination and still be able to replicate the whole model. However even adding just one parameter was giving an R.squared of almost one. 
+
+
+#Step 6 - Rolling windown analysis of yields data
+
+```{r}
+window.width <- 20
+window.shift <- 5
+
+library(zoo)
+
+head(AssignmentDataRegressionComparison)
+```
+
+##6a. Calculate rolling mean values for each variable.
+
+```{r}
+#means
+all.means<-rollapply(AssignmentDataRegressionComparison,width=window.width,by=window.shift,by.column=TRUE, mean)
+head(all.means)
+
+# Create points at which rolling means are calculated
+Count<- 1:length(AssignmentDataRegressionComparison[,1])
+head(Count)
+Rolling.window.matrix<-rollapply(Count,width=window.width,by=window.shift,by.column=FALSE,
+                                 FUN=function(z) z)
+Rolling.window.matrix[1:10,]
+
+# Take middle of each window
+Points.of.calculation<-Rolling.window.matrix[,10]
+Points.of.calculation[1:10]
+
+length(Points.of.calculation)
+
+#insert means into total length vector to plot the rolling mean with the original data
+Means.forPlot<-rep(NA,length(AssignmentDataRegressionComparison[,1]))
+Means.forPlot[Points.of.calculation]<-all.means[,1]
+Means.forPlot[1:50]
+cbind(AssignmentDataRegressionComparison[,1],Means.forPlot)[1:50,]
+
+
+plot(Means.forPlot,col="red")
+lines(AssignmentDataRegressionComparison[,1])
+```
+
+The mean is almost a perfect approximation for the 3M data
+
+##6b. Run rolling daily difference standard deviation of each variable
+
+```{r}
+daily.diff <- apply(AssignmentDataRegressionComparison,2,diff) 
+head(daily.diff)
+
+```
+The above code helps you get the daily trend of the rates.
+
+
+Taking the standard deviation of the daily trend will help see volatility. If there is more standard deviation, that means the daily trends are varying highly and that would indicate more volatility
+
+```{r}
+rolling.sd<-rollapply(daily.diff,width=window.width,by=window.shift,by.column=TRUE, sd)
+head(rolling.sd)
+
+rolling.dates<-rollapply(AssignmentDataRegressionComparison[-1,],width=window.width,by=window.shift,
+                         by.column=FALSE,FUN=function(z) rownames(z))
+head(rolling.dates)
+
+```
+
+As the term is increasing, volatility is decreasing - the short term rates (3M) seem to have the maximum volatility whereas the long term rates (30Y) seems to have the minimum volatility
+
+Also checking the overall standard deviation over each column
+```{r}
+(column.sd <- apply(daily.diff,2,sd))
+
+```
+
+Shows that the 3M column has the maximum standard deviation in daily trends overall, and this decreases as the term increases
+
+
+```{r}
+rownames(rolling.sd)<-rolling.dates[,10]
+head(rolling.sd)
+
+
+matplot(rolling.sd[,c(1,5,7,8)],xaxt="n",type="l",col=c("black","red","blue","green"))
+axis(side=1,at=1:1656,rownames(rolling.sd))
+
+```
+
+
+This graph plots the lowest term values, an intermediate term values and the largest term values and compares their volatilities along with the volatility of the output.
+
+**How is volatilty related to level of rates?** 
+As expected, the lowest term values shows the maximum volatility and the largest term values shows the minimum volatility.The output is a linear combination of all the inputs has the maximum volatility as it tries to explain the changes in all the variables. 
+
+
+**Show periods of high volatility**
+```{r}
+high.volatility.periods<-rownames(rolling.sd)[rolling.sd[,8]>.5]
+high.volatility.periods
+
+```
+
+The high volatility periods follow the major recession periods and stock market crashes. 1981-82 had a recession, there was a stock market crash in 1987 and there was a recession period in 2007-08.
+All of the periods of high volatility correspond to these financial crisis periods.
+
+##6c. Fit linear model to rolling window data using 3 months, 5 years and 30 years variables as predictors.
+
+Rolling lm coefficients - linear regression row-wise
+
+```{r}
+Coefficients<-rollapply(AssignmentDataRegressionComparison,width=window.width,by=window.shift,by.column=FALSE,
+                        FUN=function(z) coef(lm(Output1~USGG3M+USGG5YR+USGG30YR,data=as.data.frame(z))))
+
+rolling.dates<-rollapply(AssignmentDataRegressionComparison[,1:8],width=window.width,by=window.shift,by.column=FALSE,
+                         FUN=function(z) rownames(z))
+
+rownames(Coefficients)<-rolling.dates[,10]
+
+Coefficients[1:10,]
+
+```
+##6d. Look at pairwise X-Y plots of regression coefficients for the 3M, 5Yr and 30Yr yields as inputs.
+```{r}
+# Pairs plot of Coefficients
+pairs(Coefficients)
+
+```
+
+Coefficients of 5YR and 30YR appear to be negatively correlated.  
+
+This indicates that 5YR and 30YR would have opposing trends. The other coefficients do not appear to be having any real relationship.
+
+##6e. Plot the coefficients. Show periods.
+
+```{r}
+# Plot of coefficients
+
+matplot(Coefficients[,-1],xaxt="n",type="l",col=c("black","red","green"))
+axis(side=1,at=1:1657,rownames(Coefficients))
+
+```
+
+**"Is the picture of coefficients consistent with the picture of pairs? If yes, explain why."**  
+
+The graph also supports the conclusion from the pairs plot - the 5YR and 30YR coefficients in red and green show opposite values
+
+
+```{r}
+high.slopespread.periods<-rownames(Coefficients)[Coefficients[,3]-Coefficients[,4]>3]
+
+jump.slopes<-rownames(Coefficients)[Coefficients[,3]>3]
+
+high.slopespread.periods
+jump.slopes
+
+```
+
+##6f. How often the R-squared is not considered high?
+```{r}
+
+r.squared <- rollapply(AssignmentDataRegressionComparison,width=window.width, by=window.shift,by.column=FALSE,
+                       FUN=function(z) summary(lm(Output1~USGG3M+USGG5YR+USGG30YR,data=as.data.frame(z)))$r.squared)
+r.squared<-cbind(rolling.dates[,10],r.squared)
+r.squared[1:10,]
+
+plot(r.squared[,2],xaxt="n",ylim=c(0,1))
+axis(side=1,at=1:1657,rownames(Coefficients))
+
+(low.r.squared.periods<-r.squared[r.squared[,2]<.9,1])
+
+```
+
+R-squared is not considered high in 4 cases
+
+**What would cause decrease in r-squared?**  
+
+R-squared in this case would mean how well the predictors (the rates of 3M, 5YR and 30YR) are predicting the output.If r-squared is decreasing, it would be that the market has not behaved as predicted. If we look at the dates which are considered to be low R.squared periods, they all happen in the lead up to major market crashes/depressions.
+
+
+##6g. Analyze the rolling p-values.
+
+```{r}
+Pvalues<-rollapply(AssignmentDataRegressionComparison,width=window.width,by=window.shift,by.column=FALSE,
+                   FUN=function(z) summary(lm(Output1~USGG3M+USGG5YR+USGG30YR,data=as.data.frame(z)))$coefficients[,4])
+rownames(Pvalues)<-rolling.dates[,10]
+Pvalues[1:10,]
+
+matplot(Pvalues[,2],xaxt="n",col=c("black","blue","red","green"),type="o")
+axis(side=1,at=1:1657,rownames(Coefficients))
+
+
+rownames(Pvalues)[Pvalues[,2]>0.5]
+rownames(Pvalues)[Pvalues[,3]>0.5]
+rownames(Pvalues)[Pvalues[,4]>0.5]
+
+```
+
+**Interpret the plot**  
+
+P-value less than 0.5 would mean that a predictor is significant. If we look at the number of times the P-value of the 30YR is above 0.5, it happens through almost the entire time span, which would mean on the whole it would not be a good predictor, however post 2008 it appears to be significant.  
+
+P-value for the 5YR rates is significant most of the time, hence this would suggest that is a significant predictor for the output.  
+
+P-value for the 3M rates is also generally significant meaning that it could be a good predictor.
+
+#7. PCA
+
+##7a. Perform PCA with the inputs (columns 1-7).
+
+```{r}
+AssignmentData.Output <- AssignmentData$Output1
+AssignmentData <- data.matrix(AssignmentData[,1:7], rownames.force="automatic")
+dim(AssignmentData)
+
+
+head(AssignmentData)
+
+```
+
+##7b. Explore the dimensionality of the set of 3M, 2Y and 5Y yields.
+```{r}
+AssignmentData.3M_2Y_5Y<-AssignmentData[,c(1,3,5)]
+pairs(AssignmentData.3M_2Y_5Y)
+
+```
+
+All the 3 variables show a strong positive correlation, however 2Y and 5Y appear to have a very strong positive correlation.
+
+```{r}
+#Observe the 3D plot of the set. 
+library(rgl)
+rgl.points(AssignmentData.3M_2Y_5Y)
+
+```
+
+##7c. Analyze the covariance matrix of the data. Compare results of manual calculation and cov().
+
+###1. Calculating the Covariance Matrix manually
+```{r}
+n <- length(AssignmentData[,1])
+apply(AssignmentData,2,mean)
+AssignmentData_means <- matrix(data=1, nrow= length(AssignmentData[,1]))%*%(apply(AssignmentData,2,mean))
+head(AssignmentData_means)
+
+AssignmentData_difference <- AssignmentData - AssignmentData_means
+Manual.Covariance.Matrix <- (n-1)^-1 * (t(AssignmentData_difference)%*%AssignmentData_difference)
+
+Manual.Covariance.Matrix
+
+```
+
+
+###2. Calculating the Covariance matrix using the cov() matrix
+```{r}
+
+(Covariance.Matrix <- cov(AssignmentData))
+
+```
+
+
+Comparing the matrices calculated manually and using the covariance function - Both matrices are the same
+
+###3. Plotting the covariance matrix.
+
+```{r}
+Maturities<-c(.25,.5,2,3,5,10,30)
+contour(Maturities,Maturities,Covariance.Matrix)
+
+```
+
+Each line on the contour plot represents the x and y pairs that have a z value corresponding to the value written on the line. Here each x,y pair represents the maturity value and the line represents the covariance between the maturity value pairs. The covariance seems highest for the lower term maturity values with the peak around 2.5YRs. The high covariance between predictors in general could be responsible for the perfectly fitting model.
+
+##7d. Perform the PCA by manually calculating factors, loadings and analyzing the importance of factors.
+
+```{r}
+EigenVal <- eigen(Covariance.Matrix)
+EigenVal$values
+
+class(EigenVal$vectors)
+
+L <- EigenVal$vectors
+
+Fact <- AssignmentData_difference%*%L 
+
+head(Fact)
+
+```
+
+###1. Factor Loadings
+
+```{r}
+#factor loadings
+barplot(EigenVal$values/sum(EigenVal$values),width=2,col = "black",
+        names.arg=c("F1","F2","F3","F4","F5","F6","F7"))
+
+```
+
+
+###2. Plotting the loadings
+
+```{r}
+Loadings <- L[,1:3]
+matplot(Maturities,L[,1:3],type="l",lty=1,col=c("black","red","green"),lwd=3)
+
+```
+
+**Interpret the factors by looking at the shapes of the loadings.**  
+
+The first loading (the black line) is pretty consistently negative and would hence shift every predictor downwards in a Parallel Shift.  
+
+The second loading (red line) is negative for smaller terms and increases and becomes postitive for larger terms, hence this would have a see-saw or Tilt effect on the linear combination with one set of values going up and the other set going down.  
+
+The third loading (green line) is high for the smallest terms and then becomes negative for the intermediate terms and then becomes positive again for the largest maturities. The linear combination would lead to a positive movement for the smallest terms, a dip for the intermediate terms and a surge again for the largest terms.This is the butterfly or bow shaped movement (crosses 0 twice). 
+
+
+###3. Calculating and plotting 3 selected factors
+
+```{r}
+Factors<- Fact[,1:3]
+matplot(Factors,type="l",col=c("black","red","green"),lty=1,lwd=3)
+
+```
+
+
+###4. Changing the signs of the first factor and the corresponding factor loading.
+
+```{r}
+Loadings[,1] <- -Loadings[,1]
+Factors[,1]<- -Factors[,1]
+
+matplot(Factors,type="l",col=c("black","red","green"),lty=1,lwd=3)
+
+matplot(Maturities,Loadings,type="l",lty=1,col=c("black","red","green"),lwd=3)
+
+
+```
+
+###5.Factor Scatterplot
+
+```{r}
+plot(Factors[,1],Factors[,2],type="l",lwd=2)
+lines(Factors[1:1000,1],Factors[1:1000,2],type="l",lwd=2, col="green")
+
+```
+
+
+**Draw at least three conclusions from the plot of the first two factors above.**  
+
+1. The graph represents the movement along time. If you look at the earliest time periods considered, those lie on the right side of the graph. There the movements are very large from day to day.This could be considered to be a volatile period as there are large changes in Factors on a daily basis. The movements get smaller and tighter towards the later time periods (on the left of the graph) indicating lesser volatility.  
+
+2. There are a lot of loops in the graph, indicating those are periods where one factor is leading the other leading to a loop formation on the graph. The direction of the loop would indicate which factor is pulling the other at a particular time.  
+
+3. There does not seem to be an overall correlation between the two factors, but various sections of the graphs appear to show positive and negative correlations. Moving from the left to the right, the graph appears to have a negative slope, and then a positive slope and then a negative slope again. Keeping in mind that the signs of Factor 1 have been reversed, this would mean regions of postive correlation, negative correlation and then positive correlation again. 
+
+
+###6.Analyzing the adjustments that each factor makes to the term curve.
+```{r}
+OldCurve<-AssignmentData[135,]
+NewCurve<-AssignmentData[136,]
+
+CurveChange<-NewCurve-OldCurve
+FactorsChange<-Factors[136,]-Factors[135,]
+ModelCurveAdjustment.1Factor<-OldCurve+t(Loadings[,1])*FactorsChange[1]
+ModelCurveAdjustment.2Factors<-OldCurve+t(Loadings[,1])*FactorsChange[1]+t(Loadings[,2])*FactorsChange[2]
+ModelCurveAdjustment.3Factors<-OldCurve+t(Loadings[,1])*FactorsChange[1]+t(Loadings[,2])*FactorsChange[2]+
+  t(Loadings[,3])*FactorsChange[3]
+
+
+matplot(Maturities,
+        t(rbind(OldCurve,NewCurve,ModelCurveAdjustment.1Factor,ModelCurveAdjustment.2Factors,
+                ModelCurveAdjustment.3Factors)),
+        type="l",lty=c(1,1,2,2,2),col=c("black","red","green","blue","magenta"),lwd=3,ylab="Curve Adjustment")
+legend(x="topright",c("Old Curve","New Curve","1-Factor Adj.","2-Factor Adj.",
+                      "3-Factor Adj."),lty=c(1,1,2,2,2),lwd=3,col=c("black","red","green","blue","magenta"))
+
+rbind(CurveChange,ModelCurveAdjustment.3Factors-OldCurve)
+
+```
+
+**Explain how shapes of the loadings affect the adjustnents using only factor 1, factors 1 and 2, and all 3 factors.**
+The first row shows the actual change in the curve and the second row shows how the first three factors adjust the old curve to approximate change almost equal to the actual change.  
+
+1. Factor loading one has its sign reversed so instead of decreasing throughout by an almost uniform amount, it increases all the values by an almost uniform amount and hence creates an almost parallel shift from the black line to the green dashed line.  
+
+2. Factor loading two would pull up one set of values and push down the remaining values (or vice-versa) in a "tilt" movement.  
+
+3. Factor three would push down both ends and pull up the section in the middle, or vice-versa.  
+
+4. Together, factor one moves the line up from the black line to the green line, factor two pulls up the left end and pushes down the right end of the green line (as shown by the blue line), and factor three pulls up the two ends and pushes down the section in the middle (As shown by the purple line).  
+
+
+###7. See the goodness of fit for the example of 10Y yield.
+
+```{r}
+
+cbind(Maturities,Loadings)
+Model.10Y<-mean(AssignmentData[,6])+Loadings[6,1]*Factors[,1]+Loadings[6,2]*Factors[,2]+Loadings[6,3]*Factors[,3]
+matplot(cbind(AssignmentData[,6],Model.10Y),type="l",lty=1,lwd=c(3,1),col=c("black","red"),ylab="10Y Yield")
+
+```
+##7e. Repeating the PCA using princomp
+
+###1. Using princomp()
+```{r}
+PCA.Yields<-princomp(AssignmentData)
+names(PCA.Yields)
+
+```
+
+###2. Compare the loadings - Check that the loadings are the same
+```{r}
+cbind(PCA.Yields$loadings[,1:3],Maturities,EigenVal$vectors[,1:3])
+
+matplot(Maturities,PCA.Yields$loadings[,1:3],type="l",col=c("black","red","green"),lty=1,lwd=3)
+
+matplot(PCA.Yields$scores[,1:3],type="l",col=c("black","red","green"),lwd=3,lty=1)
+
+```
+
+
+###3. Change the signs of the first factor and factor loading again.
+```{r}
+PCA.Yields$loadings[,1]<--PCA.Yields$loadings[,1]
+PCA.Yields$scores[,1]<--PCA.Yields$scores[,1]
+matplot(Maturities,PCA.Yields$loadings[,1:3],type="l",col=c("black","red","green"),lty=1,lwd=3)
+
+matplot(PCA.Yields$scores[,1:3],type="l",col=c("black","red","green"),lwd=3,lty=1)
+
+```
+
+##7f. Uncover the mystery of the Output in column 8.
+
+###1. What variable did we have as Output?
+```{r}
+matplot(cbind(PCA.Yields$scores[,1],AssignmentData.Output,Factors[,1]),type="l",col=c("black","red","green"),lwd=c(3,2,1),lty=c(1,2,3),ylab="Factor 1")
+
+```
+
+The above plot shows that the output and Factor 1 (which is a linear combination of the original predictors) are the same.
+
+
+###2. Compare the regression coefficients from Step 2 and Step 3 with factor loadings.
+
+First, look at the slopes for AssignmentData.Input~AssignmentData.Output
+```{r}
+t(apply(AssignmentData, 2, function(AssignmentData.col) lm(AssignmentData.col~AssignmentData.Output)$coef))
+
+cbind(PCA.Yields$center,PCA.Yields$loadings[,1])
+
+```
+This shows that the zero loading equals the vector of intercepts of models Y~Output1, where Y is one of the columns of yields in the data. Also, the slopes of the same models are equal to the first loading.
+
+
+###3. Check if the same is true in the opposite direction: is there a correspondence between the coefficients of models Output1~Yield and the first loading.
+```{r}
+AssignmentData.Centered<-t(apply(AssignmentData,1,function(AssignmentData.row) AssignmentData.row-PCA.Yields$center))
+dim(AssignmentData.Centered)
+
+t(apply(AssignmentData.Centered, 2, function(AssignmentData.col) lm(AssignmentData.Output~AssignmentData.col)$coef))
+
+```
+
+
+###4. To recover the loading of the first factor by doing regression, use all inputs together.
+```{r}
+t(lm(AssignmentData.Output~AssignmentData.Centered)$coef)[-1]
+
+PCA.Yields$loadings[,1]
+
+```
+
+
+
+**This means that the factor is a portfolio of all input variables with weights.**  
+
+**The mystery output would thus be the overall daily yield on such a portfolio.**
+
+
